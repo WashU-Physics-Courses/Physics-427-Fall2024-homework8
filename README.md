@@ -5,6 +5,7 @@ __Due 11:59pm Monday 10/30/2023__
 ## 1. 1D Advection Equation
 
 Let's implement a numerical method to solve the simple 1D advection equation:
+
 $$
 \frac{\partial u}{\partial t} + v\frac{\partial u}{\partial x} = 0
 $$
@@ -47,29 +48,39 @@ This is done so that we can instantiate it with `std::complex<double>` type in t
 ## 3. Time-dependent Schrödinger equation in 1D
 
 In this problem, we will try to solve the time-dependent Schrödinger equation in 1D in an infinite potential well. The 1D Schrödinger equation is:
+
 $$
 i\hbar \frac{\partial \psi}{\partial t} = -\frac{\hbar^2}{2m}\frac{\partial^2 \psi}{\partial x^2} + V(x)\psi
 $$
+
 where $\psi(x, t)$ is the wavefunction, $V(x)$ is the potential, and $m$ is the mass of the particle. Using a procedure similar to HW6 description, we can make this equation dimensionless:
+
 $$
 i\frac{\partial \psi}{\partial t} = -\frac{1}{2}\frac{\partial^2 \psi}{\partial x^2} + V(x)\psi
 $$
+
 For the purpose of this homework, we will simply take $V = 0$. Consider a domain of $x\in [-10, 10]$. There is an infinite potential barrier at the boundaries of the domain, therefore the boundary conditions are $\psi(-10, t) = \psi(10, t) = 0$.
 
 We start with a Gaussian wave packet that is centered at $x = 0$ and traveling to the right at speed $v$:
+
 $$
 \psi(x, 0) = \exp\left(-\frac{x^2}{2\sigma^2} + ivx\right)
 $$
+
 where $\sigma$ is the width of the wave packet. Set $\sigma = 0.5$ and $v = 10.0$.
 
 We will use the Crank-Nicolson method to solve this equation. The Crank-Nicolson method utilizes the following discretization of the Schrödinger equation:
+
 $$
 \left(1 + \frac{1}{2}i\hat{H}\Delta t\right)\psi^{n+1}_j = \left(1 - \frac{1}{2}i\hat{H}\Delta t\right)\psi^n_j,
 $$
+
 where $\hat{H}$ is the Hamiltonian operator, and $\psi^n_j$ is the value of $\psi$ at the $j$-th grid point at time step $n$. The Hamiltonian operator in our case is simply a 2nd order spatial derivative, and it's approximated by a central difference:
+
 $$
 \hat{H}\psi^n_j = -\frac{1}{2}\frac{\psi^n_{j+1} - 2\psi^n_j + \psi^n_{j-1}}{\Delta x^2}.
 $$
+
 The Crank-Nicolsom method is an implicit method, and it requires solving a linear system at each time step. Fortunately, the linear system is tri-diagonal, and we can use the LU solver you wrote in Problem 2 to solve it.
 
 Write a C++ file `problem3.cpp` to solve the time-dependent Schrödinger equation using the method above. Use $\Delta t = 10^{-3}$ and simulate the wave function for a total of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $\psi$ in a csv file. Since the wave function is complex, you will need to include the header file `<complex>` and use `std::vector<std::complex<double>>` instead of `std::vector<double>` as the type of your arrays. You also need to use the `tri_diagonal<std::complex<double>>` version of the class you implemented in Problem 2. To help facilitate implementing the initial condition, you can include a line before the `main` function:
