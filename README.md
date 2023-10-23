@@ -72,7 +72,7 @@ $$
 $$
 The Crank-Nicolsom method is an implicit method, and it requires solving a linear system at each time step. Fortunately, the linear system is tri-diagonal, and we can use the LU solver you wrote in Problem 2 to solve it.
 
-Write a C++ file `problem3.cpp` to solve the time-dependent Schrödinger equation using the method above. Use $\Delta t = 10^{-3}$ and simulate the wave function for a total of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $\psi$ in a csv file. Since the wave function is complex, you will need to include the header file `<complex>` and use `std::vector<std::complex<double>>` instead of `std::vector<double>` as the type of your arrays. You can include a line before the `main` function:
+Write a C++ file `problem3.cpp` to solve the time-dependent Schrödinger equation using the method above. Use $\Delta t = 10^{-3}$ and simulate the wave function for a total of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $\psi$ in a csv file. Since the wave function is complex, you will need to include the header file `<complex>` and use `std::vector<std::complex<double>>` instead of `std::vector<double>` as the type of your arrays. You also need to use the `tri_diagonal<std::complex<double>>` version of the class you implemented in Problem 2. To help facilitate implementing the initial condition, you can include a line before the `main` function:
 ```cpp
 using namespace std::complex_literals;
 ```
@@ -89,4 +89,4 @@ for (int i = 0; i < Nx; i++) {
   output_file << x << "," << std::real(psi[i]) << "," << std::imag(psi[i]) << std::endl;
 }
 ```
-Plot the outputs and create a movie of the evolution of $\psi$ in time. You can modify the included `plot_problem1.py` script used in Problem 1 to make the plots. 
+Plot the outputs and create a movie of the evolution of $\psi$ in time. You can modify the included `plot_problem1.py` script used in Problem 1 to make the plots. Remember to plot $|\psi|^2 = (\mathrm{Re}\ \psi)^2 + (\mathrm{Im}\ \psi)^2$ instead of $\psi$, since $|\psi|^2$ is the probability of finding the particle at position $x$. Use the same `ffmpeg` command as in Problem 1 to create the movie. Commit the resulting `problem3.mp4` to the repository. Commit your plotting script as `plot_problem3.py`. DO NOT COMMIT CSV FILES OR BINARY FILES TO THE REPOSITORY!
