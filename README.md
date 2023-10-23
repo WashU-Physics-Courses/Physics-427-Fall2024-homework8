@@ -20,9 +20,11 @@ std::vector<double> lax_wendroff(const std::vector<double> &u,
 where `u` is the array of values of $u$ at the current time step, `v` is the advection velocity, `dx` is the grid spacing, and `dt` is the time step. The function should return a `std::vector<double>` that contains the values of $u$ at the next time step. Use one ghost cell on each side of the domain to implement periodic boundary conditions. The output array should have periodic boundary conditions already applied.
 
 In a separate C++ source file `problem1.cpp`, write a program that uses your `lax_wendroff` function to solve the advection equation for the following initial condition on a domain $x\in [0, 1]$:
+
 $$
 u(x, 0) = e^{-(x - 0.5)^2/\sigma^2}, \quad \sigma = 0.05.
 $$
+
 Use a grid with $N_x = 1000$ (remember there is a ghost cell at each end, so only $998$ are physical cells) and a time step $\Delta t = 0.9\Delta x / v$. Use an advection velocity of $v = 1.0$. Run your simulation for a total time of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $u$ in a csv file. Plot the outputs and create a movie of the evolution of $u$ in time. You can use the included `plot_problem1.py` script to make the plots. To create the movie, install the package `ffmpeg` using your package manager (`apt-get` in WSL, or `brew` on Mac), and then run the following command in a terminal:
 ```bash
 ffmpeg -framerate 10 -i u_%03d.png -c:v libx264 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p problem1.mp4
