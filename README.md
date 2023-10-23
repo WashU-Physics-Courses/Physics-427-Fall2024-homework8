@@ -61,7 +61,7 @@ $$
 i\frac{\partial \psi}{\partial t} = -\frac{1}{2}\frac{\partial^2 \psi}{\partial x^2} + V(x)\psi
 $$
 
-For the purpose of this homework, we will simply take $V = 0$. Consider a domain of $x\in [-10, 10]$. There is an infinite potential barrier at the boundaries of the domain, therefore the boundary conditions are $\psi(-10, t) = \psi(10, t) = 0$.
+For the purpose of this homework, we will simply take $V = 0$. Consider a domain of $x\in [-10, 10]$. There is an infinite potential barrier at the boundaries of the domain, therefore the boundary conditions are $\psi(-10, t) = \psi(10, t) = 0$. This boundary condition is automatically built-in in the numerical method, so you don't need to do anything special to implement it. Use a grid resolution of $N_x = 1000$.
 
 We start with a Gaussian wave packet that is centered at $x = 0$ and traveling to the right at speed $v$:
 
