@@ -1,8 +1,8 @@
 # Physics 427 Homework 7
 
-__Due 11:59pm Monday 10/30/2023__
+__Due 11:59pm Wednesday 11/6/2024__
 
-## 1. 1D Advection Equation
+## 1. Advection Equation in 1D (20 points)
 
 Let's implement a numerical method to solve the simple 1D advection equation:
 
@@ -25,81 +25,61 @@ $$
 u(x, 0) = e^{-(x - 0.5)^2/\sigma^2}, \quad \sigma = 0.05.
 $$
 
-Use a grid with $N_x = 1000$ (remember there is a ghost cell at each end, so only $998$ are physical cells) and a time step $\Delta t = 0.9\Delta x / v$. Use an advection velocity of $v = 1.0$. Run your simulation for a total time of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $u$ in a csv file. Plot the outputs and create a movie of the evolution of $u$ in time. You can use the included `plot_problem1.py` script to make the plots. To create the movie, install the package `ffmpeg` using your package manager (`apt-get` in WSL, or `brew` on Mac), and then run the following command in a terminal:
+Use a grid with $N_x = 1000$ (remember there is a ghost cell at each end to enforce periodic boundary condition, so only $998$ are physical cells) and a time step $\Delta t = 0.9\Delta x / v$. Use an advection velocity of $v = 1.0$. Run your simulation for a total time of $t = 5.0$. Create an output every time $t$ elapses by $0.02$, and write the values of $u$ in a csv file. Plot the outputs and create a movie of the evolution of $u$ in time. You can use the included `plot_problem1.py` script to make the plots, but also feel free to write your own version. To create the movie, install the package `ffmpeg` using your package manager (`apt-get` in WSL, or `brew` on Mac), and then run the following command in a terminal:
 ```bash
 ffmpeg -framerate 10 -i u_%03d.png -c:v libx264 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p problem1.mp4
 ```
-This command will take in all the `png` files under the current directory named in the form of `u_001.png`, use `libx264` as the video encoder, pad the image to have even number of pixels on both width and height, and make a movie `problem1.mp4` using the `yuv420p` pixel format. Commit the resulting `problem1.mp4` to the repository. DO NOT COMMIT CSV FILES OR BINARY FILES TO THE REPOSITORY!
+This command will take in all the `png` files under the current directory named in the form of `u_001.png`, use `libx264` as the video encoder, pad the image to have even number of pixels on both width and height, and make a movie `problem1a.mp4` using the `yuv420p` pixel format. Commit the resulting `problem1a.mp4` to the repository. DO NOT COMMIT CSV FILES OR BINARY FILES TO THE REPOSITORY!
 
-## 2. LU Decomposition of a Tri-diagonal Matrix
+Once you are done, repeat your calculation with a square wave initial condition:
 
-In this problem, we implement the LU decomposition of a tri-diagonal matrix, in order to prepare for the next problem. I have included a skeleton file `tri_diagonal.h` with a class structure. You will need to implement 3 functions, `compute_lu`, `solve`, and `multiply`. 
+$$
+u(x, 0) = \begin{cases}
+1.0, \quad 0.4 < x < 0.6 \\
+0.0, \quad \mathrm{otherwise}
+\end{cases}
+$$
 
-The `compute_lu` function should compute the LU decomposition of the given tri-diagonal matrix $A$ (given as three vectors `a`, `b`, and `c`), and populate the values of the two diagonal vectors `l` and `u`.
+Simulate the same duration and create a movie `problem1b.mp4`. Commit it to the repository. You should get a similar result as what was shown in class. Feel free to play around with the solver using different initial conditions. You don't need to commit other results to the repo, but it may be fun to see what this solver will do in different scenarios.
 
-The `solve` function should take in a vector `r` as right hand side of the matrix equation $Ax = r$, and return the solution vector `x`. You should use the LU decomposition computed in the `compute_lu` function to solve the matrix equation.
+## 2. Time-dependent Maxwell Equations in 2D (30 points)
 
-The `multiply` function is the most straightforward. It takes in a vector `x` and returns the vector $\mathbf{A}\mathbf{x}$.
+In this problem, we will try to solve the Maxwell equations in 2D. We will use the staggered Yee lattice for 2nd order accuracy in both space and time. The equations we are solving are (these are written in Lorenz-Heaviside units with $c = 1$):
 
-I have included a C++ test `test_tri_diagonal.cpp` for you to debug your implementation. Note that the class `tri_diagonal` is a template class, and you will need to instantiate it with a type. For example, to instantiate a `tri_diagonal` object with `double` type, you will need to write:
+$$
+\begin{split}
+\frac{\partial \mathbf{E}}{\partial t} &= \nabla \times \mathbf{B} - \mathbf{J} \\
+\frac{\partial \mathbf{B}}{\partial t} &= -\nabla \times \mathbf{E}
+\end{split}
+$$
+
+Let's start with a 2D grid of $N_x \times N_y$. A given grid cell is labeled by an index tuple $(i, j)$. In this problem we will not implement a periodic boundary condition, since its effect will be quite similar to a reflective boundary, which we dont need to do anything. Even though the grid is only 2D, all 6 components of the electromagnetic fields need to be defined. The fact that the grid is 2D simply means that the partial derivative with respect to $z$ is zero, $\partial/\partial z = 0$. The Yee lattice is defined as follows for a given cell:
+
+![yee lattice](yee-lattice.png)
+
+From this convention, one can write down the discretized Maxwell equations. For example, the update of $E_x$ looks like:
+
+$$
+\Delta E_{x,i,j} = \Delta t \left( \frac{B_{z,i,j+1} - B_{z,i,j}}{\Delta y} - J_x\right)
+$$
+
+where $i$ and $j$ label cells in the $x$ and $y$ directions, respectively. This is the standard Finite Difference Time Domain (FDTD) method for solving the Maxwell equations. Note that $\mathbf{E}$ is naturally defined half a time step apart from $\mathbf{B}$ so that the time update will be using centered difference. This is handled by updating $\mathbf{E}$ by half a time step at the very beginning of the simulation.
+
+Your goal is to implement a solver for Maxwell equations in 2D. I have included a skeleton file, `maxwell.h`, for you to fill in. In particular, you need to finish the two functions `update_e` and `update_b`. The former one will take a source function `J` that specify the time dependent current that sources the electromagnetic field. Commit the finished file `maxwell.h` to the repository.
+
+In a new source file, `problem2a.cpp`, use the Maxwell solver you implemented to find the radiation from an oscillating current source. In particular, use a current function similar to the following:
+
 ```cpp
-tri_diagonal<double> A(a, b, c);
-```
-This is done so that we can instantiate it with `std::complex<double>` type in the next problem to solve complex-valued linear systems. Your implementation should not be affected by the fact that this class is a template. Commit your implementation of `tri_diagonal.h` to the Github repository.
-
-## 3. Time-dependent Schrödinger equation in 1D
-
-In this problem, we will try to solve the time-dependent Schrödinger equation in 1D in an infinite potential well. The 1D Schrödinger equation is:
-
-$$
-i\hbar \frac{\partial \psi}{\partial t} = -\frac{\hbar^2}{2m}\frac{\partial^2 \psi}{\partial x^2} + V(x)\psi
-$$
-
-where $\psi(x, t)$ is the wavefunction, $V(x)$ is the potential, and $m$ is the mass of the particle. Using a procedure similar to HW6 description, we can make this equation dimensionless:
-
-$$
-i\frac{\partial \psi}{\partial t} = -\frac{1}{2}\frac{\partial^2 \psi}{\partial x^2} + V(x)\psi
-$$
-
-For the purpose of this homework, we will simply take $V = 0$. Consider a domain of $x\in [-10, 10]$. There is an infinite potential barrier at the boundaries of the domain, therefore the boundary conditions are $\psi(-10, t) = \psi(10, t) = 0$. This boundary condition is automatically built-in in the numerical method, so you don't need to do anything special to implement it. Use a grid resolution of $N_x = 1000$.
-
-We start with a Gaussian wave packet that is centered at $x = 0$ and traveling to the right at speed $v$:
-
-$$
-\psi(x, 0) = \exp\left(-\frac{x^2}{2\sigma^2} + ivx\right)
-$$
-
-where $\sigma$ is the width of the wave packet. Set $\sigma = 0.5$ and $v = 10.0$.
-
-We will use the Crank-Nicolson method to solve this equation. The Crank-Nicolson method utilizes the following discretization of the Schrödinger equation:
-
-$$
-\left(1 + \frac{1}{2}i\hat{H}\Delta t\right)\psi^{n+1}_j = \left(1 - \frac{1}{2}i\hat{H}\Delta t\right)\psi^n_j,
-$$
-
-where $\hat{H}$ is the Hamiltonian operator, and $\psi^n_j$ is the value of $\psi$ at the $j$-th grid point at time step $n$. The Hamiltonian operator in our case is simply a 2nd order spatial derivative, and it's approximated by a central difference:
-
-$$
-\hat{H}\psi^n_j = -\frac{1}{2}\frac{\psi^n_{j+1} - 2\psi^n_j + \psi^n_{j-1}}{\Delta x^2}.
-$$
-
-The Crank-Nicolsom method is an implicit method, and it requires solving a linear system at each time step. Fortunately, the linear system is tri-diagonal, and we can use the LU solver you wrote in Problem 2 to solve it.
-
-Write a C++ file `problem3.cpp` to solve the time-dependent Schrödinger equation using the method above. Use $\Delta t = 10^{-3}$ and simulate the wave function for a total of $t = 1.0$. Create an output every time $t$ elapses by $0.01$, and write the values of $\psi$ in a csv file. Since the wave function is complex, you will need to include the header file `<complex>` and use `std::vector<std::complex<double>>` instead of `std::vector<double>` as the type of your arrays. You also need to use the `tri_diagonal<std::complex<double>>` version of the class you implemented in Problem 2. To help facilitate implementing the initial condition, you can include a line before the `main` function:
-```cpp
-using namespace std::complex_literals;
-```
-to use the `i` literal for complex numbers. When assigning the initial condition, you can write something like the following:
-```cpp
-psi[j] = std::exp(-0.5 * (x * x) / (sigma * sigma) + 1.0i * v * x);
-```
-Here `1.0i` means the imaginary unit $i$.
-
-When writing output, remember to write both the real and imaginary parts of $\psi$ to the csv file. You can do it with the following code snipped:
-```cpp
-for (int i = 0; i < Nx; i++) {
-  double x = x0 + i * dx;
-  output_file << x << "," << std::real(psi[i]) << "," << std::imag(psi[i]) << std::endl;
+double J(int n, int i, int j, double t) {
+  // This function creates an oscillating Jz at the center of the domain
+  if (n != 2 || i != Nx / 2 || j != Ny / 2) {
+    return 0.0;
+  } else {
+    return J0 * sin(omega * t);
+  }
 }
 ```
-Plot the outputs and create a movie of the evolution of $\psi$ in time. You can modify the included `plot_problem1.py` script used in Problem 1 to make the plots. Remember to plot $|\psi|^2 = (\mathrm{Re}\ \psi)^2 + (\mathrm{Im}\ \psi)^2$ instead of $\psi$, since $|\psi|^2$ is the probability of finding the particle at position $x$. Use the same `ffmpeg` command as in Problem 1 to create the movie. Commit the resulting `problem3.mp4` to the repository. Commit your plotting script as `plot_problem3.py`. DO NOT COMMIT CSV FILES OR BINARY FILES TO THE REPOSITORY!
+
+Run the solver for a total physical time of approximately $T = 1.0$, which is the light-crossing time of the simulation box. Write the out-of-plane electric field $E_z$ in a series of `.csv` files. Create a movie of this process in Python and commit it to the repository as `problem2a.mp4`. Do remember to include a colorbar to show the scale of the colormap. Choose your amplitude of the current `J0` and frequency `omega` such that you see several wavelengths of spherical wave inside the box, and that the wave has maximum amplitude of order $\sim 1$. Note what happens when the wave hits the boundary.
+
+The current function above represents a current oscillating in the $z$ direction. Change the current to be in the $y$ direction instead. Run the simulation again, but this time write $B_z$ as outputs. Since the current is oscillating within the $x$-$y$ plane, we should be able to see the angular dependence of the electromagnetic wave. Create a movie of this process and commit it as `problem2b.mp4`. Commit your modified C++ source file as `problem2b.cpp`. DO NOT COMMIT CSV FILES OR BINARY FILES TO THE REPOSITORY!
