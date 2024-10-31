@@ -1,4 +1,4 @@
-# Physics 427 Homework 7
+# Physics 427 Homework 8
 
 __Due 11:59pm Wednesday 11/6/2024__
 
